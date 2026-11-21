@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>주말캠프 진도·책 관리</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-inner">
+      <h1>주말캠프</h1>
+      <nav class="tabs" role="tablist">
+        <button class="tab" data-tab="progress" role="tab">진도</button>
+        <button class="tab" data-tab="stock" role="tab">책 재고</button>
+        <button class="tab" data-tab="buy" role="tab">구매 계획</button>
+        <button class="tab" data-tab="log" role="tab">기록</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- 진도 -->
+    <section id="tab-progress" class="panel">
+      <form id="done-form" class="done-box" autocomplete="off">
+        <label for="done-input" class="done-label">책을 다 푼 학생 이름</label>
+        <p class="hint">이름을 적고 Enter를 누르면 다음 책으로 넘어가고, 그 책 재고가 1권 줄어요. 여러 명은 띄어쓰기나 쉼표로 한 번에 적을 수 있어요.</p>
+        <div class="done-row">
+          <input id="done-input" list="name-list" placeholder="예: 김로이 정소리" inputmode="text">
+          <button type="submit" class="btn primary">다음 책으로</button>
+        </div>
+        <datalist id="name-list"></datalist>
+        <div id="done-result" class="done-result" aria-live="polite"></div>
+      </form>
+
+      <div class="summary" id="level-summary"></div>
+
+      <div class="list-tools">
+        <input id="search" type="search" placeholder="이름 검색">
+        <select id="grade-filter" aria-label="학년">
+          <option value="">전체 학년</option>
+        </select>
+        <select id="sort" aria-label="정렬">
+          <option value="grade">학년순</option>
+          <option value="level">진도순</option>
+          <option value="name">이름순</option>
+        </select>
+      </div>
+
+      <div class="table-scroll">
+        <table class="roster">
+          <thead>
+            <tr><th>학년</th><th>이름</th><th>지금 책</th><th class="hide-sm">진도</th><th></th></tr>
+          </thead>
+          <tbody id="roster-body"></tbody>
+        </table>
+      </div>
+      <p class="hint small">'지금 책'을 직접 바꾸는 건 잘못 적힌 걸 고칠 때만 쓰세요. 재고는 바뀌지 않아요.</p>
+
+      <details class="add-student">
+        <summary>학생 추가</summary>
+        <form id="add-form" class="add-row">
+          <select id="add-grade" aria-label="학년"></select>
+          <input id="add-name" placeholder="이름" required>
+          <select id="add-level" aria-label="시작 책"></select>
+          <button class="btn" type="submit">추가</button>
+        </form>
+      </details>
+    </section>
+
+    <!-- 재고 -->
+    <section id="tab-stock" class="panel" hidden>
+      <h2>책 재고</h2>
+      <p class="hint">지금 가지고 있는 책 권수를 적어 주세요. 학생이 다음 책으로 넘어갈 때마다 자동으로 1권씩 빠져요.</p>
+      <div class="stock-grid" id="stock-grid"></div>
+      <div class="stock-actions">
+        <label class="receive">
+          <span>책이 들어왔어요</span>
+          <select id="recv-book" aria-label="책"></select>
+          <input id="recv-count" type="number" min="1" value="1" aria-label="권수">
+          <button class="btn" id="recv-btn" type="button">재고에 더하기</button>
+        </label>
+      </div>
+    </section>
+
+    <!-- 구매 계획 -->
+    <section id="tab-buy" class="panel" hidden>
+      <h2>다음에 살 책</h2>
+      <p class="hint">지금 각 책을 풀고 있는 학생들이 끝내면 바로 다음 책이 필요해요. 그 인원에서 재고를 빼서 살 권수를 계산합니다.</p>
+      <div class="buy-opts">
+        <label>여유분 (책마다) <input id="buffer" type="number" min="0" value="0"></label>
+        <label>앞으로 <select id="horizon">
+          <option value="1">다음 1단계</option>
+          <option value="2">다음 2단계</option>
+          <option value="3">다음 3단계</option>
+        </select> 까지 준비</label>
+      </div>
+      <div id="buy-total" class="buy-total"></div>
+      <div class="table-scroll">
+        <table class="buy">
+          <thead><tr><th>책</th><th>필요</th><th>재고</th><th>살 권수</th></tr></thead>
+          <tbody id="buy-body"></tbody>
+        </table>
+      </div>
+      <button class="btn" id="copy-buy" type="button">주문 목록 복사</button>
+    </section>
+
+    <!-- 기록 -->
+    <section id="tab-log" class="panel" hidden>
+      <h2>기록</h2>
+      <ul id="log-list" class="log"></ul>
+      <h2>백업</h2>
+      <p class="hint">기록은 이 브라우저에 저장돼요. 다른 기기에서 쓰거나 혹시 모를 때를 위해 가끔 백업 파일을 받아 두세요.</p>
+      <div class="backup-row">
+        <button class="btn" id="export-json" type="button">백업 파일 받기</button>
+        <button class="btn" id="export-csv" type="button">명단 CSV 받기</button>
+        <label class="btn file-btn">백업 불러오기<input id="import-json" type="file" accept="application/json" hidden></label>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
